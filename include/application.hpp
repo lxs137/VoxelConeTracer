@@ -5,19 +5,24 @@
 #ifndef CONETRACER_APPLICATION_HPP
 #define CONETRACER_APPLICATION_HPP
 
-#include <GLFW/glfw3.h>
-
 #include "common.hpp"
+#include "scene.hpp"
+
+CONETRACER_NAMESPACE_BEGIN
 
 class TracerApp {
 public:
-  TracerApp(const int width, const int height, GLFWwindow *window);
+  TracerApp(const int width, const int height, GLFWwindow *windowPtr);
 
   bool initContext();
   void draw();
-private:
+
+
+protected:
   GLFWwindow *window;
+  shared_ptr<Scene> scenePtr;
 };
 
+CONETRACER_NAMESPACE_END
 
 #endif //CONETRACER_APPLICATION_HPP

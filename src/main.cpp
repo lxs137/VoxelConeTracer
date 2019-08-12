@@ -3,11 +3,10 @@
 //
 #include <iostream>
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #include "common.hpp"
 #include "application.hpp"
+
+using namespace conetracer;
 
 void dumpGLInfo() {
     cout << "Vendor: " << glGetString(GL_VENDOR)
@@ -45,13 +44,13 @@ int main() {
     }
 
     glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    GLFWwindow* window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "ConeTracer", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "ConeTracer", nullptr, nullptr);
     if (window == nullptr) {
         cerr << "Failed to Create OpenGL Context\n";
         glfwTerminate();
