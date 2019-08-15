@@ -59,7 +59,7 @@ int main() {
 
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPos(window, WIN_WIDTH, WIN_HEIGHT);
 
     glewExperimental = GL_TRUE; // Needed for core profile
@@ -96,7 +96,7 @@ int main() {
             showFPSInternal += deltaTime;
         }
 
-        app.draw();
+        app.draw(deltaTime);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

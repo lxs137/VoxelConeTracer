@@ -27,8 +27,9 @@ using std::shared_ptr;
 using std::string;
 
 const int WIN_WIDTH = 1280, WIN_HEIGHT = 720;
-const int VOXELS_PER_SIDE = 512;
-const float VOXELS_SIZE = 0.5f;
+const int VOXELS_PER_SIDE = 128;
+const float VOXELS_SIZE = 0.02f;
+// VOXELS_SIZE * VOXELS_PER_SIDE > 2
 
 enum TEXTURE_TYPE {
   DIFFUSE_TEXTURE,
@@ -36,6 +37,10 @@ enum TEXTURE_TYPE {
   MASK_TEXTURE,
   HEIGHT_TEXTURE,
   NUM_TEXTURES
+};
+
+enum TRACERAPP_DRAW_MODE {
+  RAW_VOXELS_MODE,
 };
 
 struct Texture2D {

@@ -3,6 +3,8 @@
 //
 #include "utils.hpp"
 
+#include <fstream>
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -122,6 +124,95 @@ Texture2D loadTexture(const string &dir, const string &filename) {
     stbi_image_free(textureData);
 
     return tex;
+}
+
+GLuint loadAndCompileShader(const string &path, GLenum shaderType) {
+    std::string shaderCode;
+    std::ifstream inFile(path, std::ios::in);
+    if (!inFile) {
+        cerr << "Error open GLSL file: " << path << endl;
+        return 0;
+    }
+
+    if (inFile.is_open()) {
+        std::string line;
+        while(getline(inFile, line))
+            shaderCode += "\n" + line;
+        inFile.close();
+    } else {
+        cerr << "Couldn't open shader: " << path << endl;
+        return 0;
+    }
+
+    GLuint shaderID = glCreateShader(shaderType);
+    if (0 == shaderID) {
+        cerr << "Error creating" << shaderType << "shader." << endl;
+    }
+
+    const char *sourceStrPtr = shaderCode.c_str();
+    glShaderSource(shaderID, 1, &sourceStrPtr, nullptr);
+    glCompileShader(shaderID);
+
+    GLint err, logLen;
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &err);
+    glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLen);
+    if (GL_FALSE == err && logLen > 0) {
+        std::vector<char> errorMessage(logLen + 1);
+        glGetShaderInfoLog(shaderID, logLen, nullptr, &errorMessage[0]);
+        cerr << "OpenGL shader info log: " << &errorMessage[0] << endl;
+        return 0;
+    }
+
+    return (GL_FALSE == err) ? 0 : shaderID;
+}
+
+GLuint linkProgram(GLuint vertShaderID, GLuint fragShaderID, GLuint geomShaderID) {
+    GLuint programID = glCreateProgram();
+    glAttachShader(programID, vertShaderID);
+    glAttachShader(programID, fragShaderID);
+    if (geomShaderID) {
+        glAttachShader(programID, geomShaderID);
+    }
+    glLinkProgram(programID);
+
+    // Check the program
+    GLint err, logLen;
+    glGetProgramiv(programID, GL_LINK_STATUS, &err);
+    glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &logLen);
+    if (GL_FALSE == err && logLen > 0) {
+        std::vector<char> errorMessage(logLen + 1);
+        glGetShaderInfoLog(programID, logLen, nullptr, &errorMessage[0]);
+        cerr << "OpenGL shader info log: " << &errorMessage[0] << endl;
+        return 0;
+    }
+
+    glDeleteShader(vertShaderID);
+    glDeleteShader(fragShaderID);
+    if (geomShaderID) {
+        glDeleteShader(geomShaderID);
+    }
+
+    return (GL_FALSE == err) ? 0 : programID;
+}
+
+std::ostream& operator<<(std::ostream& os, const glm::mat4& mat) {
+    os << "Mat[" << endl
+       << "  " << mat[0][0] << ", " << mat[0][1] << ", " << mat[0][2] << ", " << mat[0][3] << endl
+       << "  " << mat[1][0] << ", " << mat[1][1] << ", " << mat[1][2] << ", " << mat[1][3] << endl
+       << "  " << mat[2][0] << ", " << mat[2][1] << ", " << mat[2][2] << ", " << mat[2][3] << endl
+       << "  " << mat[3][0] << ", " << mat[3][1] << ", " << mat[3][2] << ", " << mat[3][3] << endl
+       << "]" << endl;
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const glm::vec3& vec) {
+    os << "Vec3[ " << vec[0] << ", " << vec[1] << ", " << vec[2] << " ]" << endl;
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const glm::vec4& vec) {
+    os << "Vec4[ " << vec[0] << ", " << vec[1] << ", " << vec[2] << ", " << vec[3] << " ]" << endl;
+    return os;
 }
 
 CONETRACER_NAMESPACE_END

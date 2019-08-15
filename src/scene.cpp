@@ -1,18 +1,21 @@
 //
 // Created by liao xiangsen on 2019/8/12.
 //
+#include "scene/scene.hpp"
 
-#include <object.hpp>
-#include <voxelizer.hpp>
-#include "scene.hpp"
+#include "object.hpp"
+#include "voxelizer.hpp"
+#include "utils.hpp"
 
 CONETRACER_NAMESPACE_BEGIN
 
-void Scene::voxelize(int voxelsPerSide, float voxelSize) {
+shared_ptr<Grids> Scene::voxelize(int voxelsPerSide, float voxelSize) {
     int numVoxels = voxelsPerSide * voxelsPerSide * voxelsPerSide, voxelsPerPlane = voxelsPerSide * voxelsPerSide;
     GLubyte* data = new GLubyte[numVoxels * 4];
     memset(data, 0, sizeof(GLubyte) * numVoxels * 4);
 
+    float precF = voxelSize * 0.1f;
+    shared_ptr<Grids> gridsPtr = nullptr;
     // voxelize
     for (auto &obj: objs) {
         auto meshPtr = obj->meshPtr;
@@ -28,31 +31,19 @@ void Scene::voxelize(int voxelsPerSide, float voxelSize) {
             vxMesh->indices[3 * i + 1] = meshPtr->indices[i].y;
             vxMesh->indices[3 * i + 2] = meshPtr->indices[i].z;
         }
-        float precF = voxelSize * 0.1f, resF_1 = 1.0f / voxelSize;
-        vx_point_cloud_t* result = vx_voxelize_pc(vxMesh, voxelSize, voxelSize, voxelSize, precF);
-        // result->vertices is point's pos, trans to index in voxel grids
-        for(size_t i = 0; i < result->nvertices; i++) {
-            vx_vertex_t *p = &(result->vertices[i]);
-            int x = (int)(p->x * resF_1), y = (int)(p->y * resF_1), z = (int)(p->z * resF_1);
-            int offset = 4 * (x + y * voxelsPerSide + z * voxelsPerPlane);
-            data[offset] = 1;
-            data[offset + 1] = 1;
-            data[offset + 2] = 1;
-            data[offset + 3] = 1;
+        vx_point_cloud_t* resultPoints = vx_voxelize_pc(vxMesh, voxelSize, voxelSize, voxelSize, precF);
+        // resultPoints->vertices is point's pos, trans to index in voxel grids
+        if (gridsPtr == nullptr) {
+            gridsPtr = std::make_shared<Grids>(voxelsPerSide, voxelsPerSide, voxelsPerSide, resultPoints, voxelSize);
+        } else {
+            gridsPtr->addVoxels(resultPoints);
         }
-        vx_point_cloud_free(result);
+
+        vx_mesh_free(vxMesh);
+        vx_point_cloud_free(resultPoints);
     }
 
-    // bind voxel grids to 3D texture
-    glEnable(GL_TEXTURE_3D);
-    voxelTex.size = voxelsPerSide;
-    glGenTextures(1, &voxelTex.textureID);
-    glBindTexture(GL_TEXTURE_3D, voxelTex.textureID);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, voxelsPerSide, voxelsPerSide, voxelsPerSide, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_3D);
-    delete[] data;
+    return gridsPtr;
 }
 
 CONETRACER_NAMESPACE_END

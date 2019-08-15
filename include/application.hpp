@@ -6,21 +6,33 @@
 #define CONETRACER_APPLICATION_HPP
 
 #include "common.hpp"
-#include "scene.hpp"
+#include "scene/scene.hpp"
+#include "controller.hpp"
 
 CONETRACER_NAMESPACE_BEGIN
 
 class TracerApp {
 public:
-  TracerApp(const int width, const int height, GLFWwindow *windowPtr);
+  TracerApp(int width, int height, GLFWwindow *window);
 
   bool initContext();
-  void draw();
-
+  void drawVoxels();
+  void draw(float loopCostTime);
 
 protected:
-  GLFWwindow *window;
+  TRACERAPP_DRAW_MODE mode;
+  GLFWwindow *windowPtr;
+  int winWidth, winHeight;
+
+  shared_ptr<Controller> ctrlPtr;
   shared_ptr<Scene> scenePtr;
+
+  // compiled and linked program ID
+  GLuint voxelShaderID;
+  // VAO ID
+  GLuint voxelVAOID, voxelVBOID;
+  // texture
+  Texture3DCubic voxelTex;
 };
 
 CONETRACER_NAMESPACE_END
